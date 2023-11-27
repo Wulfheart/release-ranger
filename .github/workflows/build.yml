@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y musl-tools
 
       - name: Build
-        run: go build --ldflags "-linkmode external -extldflags=-static -X 'dc/cmd.version=$CURRENT_VERSION' -X 'dc/cmd.goversion=$GOVERSION' -X 'dc/cmd.commit=$GIT_COMMIT' -X 'dc/cmd.built=$CURRENT_DATE'  -X 'dc/cmd.build=$BUILD'"
+        run: go build --ldflags "-linkmode external -extldflags=-static -X 'github.com/wulfheart/release-ranger/cmd.version=$CURRENT_VERSION' -X 'github.com/wulfheart/release-ranger/cmd.goversion=$GOVERSION' -X 'github.com/wulfheart/release-ranger/cmd.commit=$GIT_COMMIT' -X 'github.com/wulfheart/release-ranger/cmd.built=$CURRENT_DATE'  -X 'github.com/wulfheart/release-ranger/cmd.build=$BUILD'" -o rer
         env:
           BUILD: linux-amd64
           GOARCH: amd64
@@ -56,8 +56,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dc
-          asset_name: dc-linux-${{ env.CURRENT_VERSION }}
+          file: rer
+          asset_name: rer-linux-${{ env.CURRENT_VERSION }}
 
   build-macos:
     strategy:
@@ -78,7 +78,7 @@ jobs:
           cache: true
 
       - name: Build
-        run: go build --ldflags "-X 'dc/cmd.version=$CURRENT_VERSION' -X 'dc/cmd.goversion=$GOVERSION' -X 'dc/cmd.commit=$GIT_COMMIT' -X 'dc/cmd.built=$CURRENT_DATE' -X 'dc/cmd.build=$BUILD'"
+        run: go build --ldflags "-X 'github.com/wulfheart/release-ranger/cmd.version=$CURRENT_VERSION' -X 'github.com/wulfheart/release-ranger/cmd.goversion=$GOVERSION' -X 'github.com/wulfheart/release-ranger/cmd.commit=$GIT_COMMIT' -X 'github.com/wulfheart/release-ranger/cmd.built=$CURRENT_DATE' -X 'github.com/wulfheart/release-ranger/cmd.build=$BUILD'" -o rer
         env:
           GOOS: darwin
           BUILD: macos-${{ matrix.arch }}
@@ -91,5 +91,5 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dc
-          asset_name: dc-macos-${{ matrix.arch }}-${{ env.CURRENT_VERSION }}
+          file: rer
+          asset_name: rer-macos-${{ matrix.arch }}-${{ env.CURRENT_VERSION }}
