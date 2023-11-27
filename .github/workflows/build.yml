@@ -1,0 +1,89 @@
+name: release-ranger
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  CURRENT_VERSION: ${{ github.ref_name }}
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        id: setup-go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Install musl-tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Build
+        run: go build --ldflags "-linkmode external -extldflags=-static -X 'dc/cmd.version=$CURRENT_VERSION' -X 'dc/cmd.goversion=$GOVERSION' -X 'dc/cmd.commit=$GIT_COMMIT' -X 'dc/cmd.built=$CURRENT_DATE'  -X 'dc/cmd.build=$BUILD'"
+        env:
+          BUILD: linux-amd64
+          GOARCH: amd64
+          CGO_ENABLED: 1
+          CC: musl-gcc
+          GIT_COMMIT: ${{ github.sha }}
+          CURRENT_DATE: ${{ github.event.repository.pushed_at }}
+          GOVERSION: ${{ steps.setup-go.outputs.go-version }}
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dc
+          asset_name: dc-linux-${{ env.CURRENT_VERSION }}
+
+  build-macos:
+    strategy:
+      matrix:
+        arch: [ amd64, arm64 ]
+    runs-on: macos-latest
+    needs: create-release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        id: setup-go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Build
+        run: go build --ldflags "-X 'dc/cmd.version=$CURRENT_VERSION' -X 'dc/cmd.goversion=$GOVERSION' -X 'dc/cmd.commit=$GIT_COMMIT' -X 'dc/cmd.built=$CURRENT_DATE' -X 'dc/cmd.build=$BUILD'"
+        env:
+          GOOS: darwin
+          BUILD: macos-${{ matrix.arch }}
+          GOARCH: ${{ matrix.arch }}
+          GIT_COMMIT: ${{ github.sha }}
+          CURRENT_DATE: ${{ github.event.repository.pushed_at }}
+          GOVERSION: ${{ steps.setup-go.outputs.go-version }}
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dc
+          asset_name: dc-macos-${{ matrix.arch }}-${{ env.CURRENT_VERSION }}
