@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"github.com/gookit/color"
 	"github.com/wulfheart/release-ranger/core"
 	"os"
 
@@ -34,5 +35,10 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "d", false, "Dry run")
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		if dryRun {
+			color.BgRed.Println("Dry run enabled")
+		}
+	}
 	releaser = core.GitReleaser{}
 }

@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/gookit/color"
 
 	"github.com/spf13/cobra"
 )
@@ -18,17 +19,17 @@ var patchCmd = &cobra.Command{
 			panic(err)
 		}
 		latestVersion := versions[0]
-		newVersion := latestVersion.IncrementMinor()
+		newVersion := latestVersion.IncrementPatch()
 		fmt.Println("Incrementing " + latestVersion.String() + " to " + newVersion.String())
 
-		if dryRun {
+		if !dryRun {
 			err = releaser.Create(newVersion)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		fmt.Println("Created " + newVersion.String())
+		color.Greenln("Created " + newVersion.String())
 	},
 }
 

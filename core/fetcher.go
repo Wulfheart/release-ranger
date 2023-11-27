@@ -51,7 +51,11 @@ func (g GitReleaser) Retrieve() (SortedVersionCollection, error) {
 func (g GitReleaser) Create(version *Version) error {
 	cmd := exec.Command("git", "tag", "-a", version.String(), "-m", version.String())
 	_, err := cmd.Output()
+	if err != nil {
+		return err
+	}
 	cmd = exec.Command("git", "push", "origin", version.String())
+	_, err = cmd.Output()
 	return err
 }
 
