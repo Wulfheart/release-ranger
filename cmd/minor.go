@@ -12,7 +12,8 @@ import (
 
 // minorCmd represents the minor command
 var minorCmd = &cobra.Command{
-	Use: "minor",
+	Use:   "minor",
+	Short: "Increment the minor version and push",
 	Run: func(cmd *cobra.Command, args []string) {
 		versions, err := releaser.Retrieve()
 		if err != nil {

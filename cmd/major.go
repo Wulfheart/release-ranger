@@ -11,7 +11,8 @@ import (
 
 // majorCmd represents the major command
 var majorCmd = &cobra.Command{
-	Use: "major",
+	Use:   "major",
+	Short: "Increment the major version and push",
 	Run: func(cmd *cobra.Command, args []string) {
 		versions, err := releaser.Retrieve()
 		if err != nil {

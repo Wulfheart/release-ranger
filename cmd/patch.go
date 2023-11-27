@@ -12,7 +12,8 @@ import (
 
 // patchCmd represents the patch command
 var patchCmd = &cobra.Command{
-	Use: "patch",
+	Use:   "patch",
+	Short: "Increment the patch version and push",
 	Run: func(cmd *cobra.Command, args []string) {
 		versions, err := releaser.Retrieve()
 		if err != nil {
