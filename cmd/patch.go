@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var patchRC bool
+
 // patchCmd represents the patch command
 var patchCmd = &cobra.Command{
 	Use:   "patch",
@@ -20,7 +22,10 @@ var patchCmd = &cobra.Command{
 			panic(err)
 		}
 		latestVersion := versions[0]
-		newVersion := latestVersion.IncrementPatch()
+		var newVersion = latestVersion.IncrementPatch()
+		if patchRC {
+			newVersion = latestVersion.IncrementPrerelease()
+		}
 		fmt.Println("Incrementing " + latestVersion.String() + " to " + newVersion.String())
 
 		if !dryRun {
@@ -36,6 +41,8 @@ var patchCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(patchCmd)
+
+	patchCmd.Flags().BoolVar(&patchRC, "rc", false, "Increment the release candidate (prerelease) instead of the patch version")
 
 	// Here you will define your flags and configuration settings.
 
