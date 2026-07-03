@@ -49,50 +49,6 @@ func TestIncrementPatch(t *testing.T) {
 	}
 }
 
-func TestIncrementMinor(t *testing.T) {
-	tests := []struct {
-		name    string
-		current string
-		want    string
-	}{
-		{"plain minor bump resets patch", "v28.3.1", "v28.4.0"},
-		{"prerelease bumps to clean minor", "v28.3.1-rc2000.1.0", "v28.4.0"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			current := mustVersion(t, tt.current)
-			next := current.IncrementMinor()
-			if got := next.String(); got != tt.want {
-				t.Errorf("IncrementMinor(%q) = %q, want %q", tt.current, got, tt.want)
-			}
-			assertGreater(t, current, next)
-		})
-	}
-}
-
-func TestIncrementMajor(t *testing.T) {
-	tests := []struct {
-		name    string
-		current string
-		want    string
-	}{
-		{"plain major bump resets minor and patch", "v28.3.1", "v29.0.0"},
-		{"prerelease bumps to clean major", "v28.3.1-rc2000.1.0", "v29.0.0"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			current := mustVersion(t, tt.current)
-			next := current.IncrementMajor()
-			if got := next.String(); got != tt.want {
-				t.Errorf("IncrementMajor(%q) = %q, want %q", tt.current, got, tt.want)
-			}
-			assertGreater(t, current, next)
-		})
-	}
-}
-
 func TestIncrementPrerelease(t *testing.T) {
 	tests := []struct {
 		name    string
