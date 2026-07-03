@@ -78,14 +78,30 @@ jobs:
           cache: true
 
       - name: Build
-        run: go build --ldflags "-X 'github.com/wulfheart/release-ranger/cmd.version=$CURRENT_VERSION' -X 'github.com/wulfheart/release-ranger/cmd.goversion=$GOVERSION' -X 'github.com/wulfheart/release-ranger/cmd.commit=$GIT_COMMIT' -X 'github.com/wulfheart/release-ranger/cmd.built=$CURRENT_DATE' -X 'github.com/wulfheart/release-ranger/cmd.build=$BUILD'" -o rer
+        # -B gobuildid forces the linker to emit an LC_UUID load command.
+        # Without it these binaries lack LC_UUID and dyld aborts them on
+        # Apple Silicon with "missing LC_UUID load command". CGO_ENABLED=0
+        # gives a deterministic pure-Go cross-build (the tool has no cgo deps).
+        run: go build --ldflags "-B gobuildid -X 'github.com/wulfheart/release-ranger/cmd.version=$CURRENT_VERSION' -X 'github.com/wulfheart/release-ranger/cmd.goversion=$GOVERSION' -X 'github.com/wulfheart/release-ranger/cmd.commit=$GIT_COMMIT' -X 'github.com/wulfheart/release-ranger/cmd.built=$CURRENT_DATE' -X 'github.com/wulfheart/release-ranger/cmd.build=$BUILD'" -o rer
         env:
           GOOS: darwin
           BUILD: macos-${{ matrix.arch }}
           GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
           GIT_COMMIT: ${{ github.sha }}
           CURRENT_DATE: ${{ github.event.repository.pushed_at }}
           GOVERSION: ${{ steps.setup-go.outputs.go-version }}
+
+      # Ad-hoc sign so the binary runs on Apple Silicon (the internal linker
+      # only auto-signs arm64, not amd64) and re-establishes a valid signature
+      # after the ldflags-driven build.
+      - name: Ad-hoc code sign
+        run: codesign --force --sign - rer
+
+      - name: Verify LC_UUID and signature
+        run: |
+          otool -l rer | grep -q LC_UUID || { echo "::error::binary is missing LC_UUID"; exit 1; }
+          codesign --verify --verbose rer
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
