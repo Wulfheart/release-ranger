@@ -74,7 +74,10 @@ jobs:
         id: setup-go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.21
+          # Go >= 1.23 is required: the internal linker only emits an LC_UUID
+          # load command (and accepts -B gobuildid) from 1.23 onwards. On 1.21
+          # the build fails with "-B argument must start with 0x: gobuildid".
+          go-version: "1.23"
           cache: true
 
       - name: Build
